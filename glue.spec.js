@@ -72,6 +72,16 @@ describe('Mock', function() {
       expect(subject.behaviours.length).toBe(1);
     });
 
+    it('allows the same arguments to have two different return values', function() {
+      // This is useful because we may return different values in different
+      // contexts.
+
+      subject.map(['arg1', 'arg2'], 'return');
+      expect(function() {
+        subject.map(['arg1', 'arg2'], 'ANOTHER return');
+      }).not.toThrow();
+    })
+
   });
 
   describe('after .map', function() {
@@ -190,6 +200,51 @@ describe('RealWrapper', function() {
 
     it('returns the real value for unmocked methods', function() {
       expect(wrapper.somethingElse()).toEqual('hi');
+    });
+  });
+
+  describe('when a mock method has more than one return value', function() {
+    var mock2;
+    beforeEach(function() {
+      mock.map([], 'baz');
+
+      // Now foo() could return bar or baz.
+      // This is legitimate, as a function may return different values in
+      // different contexts.
+      real = {
+        fooFlag: true
+      };
+      real.foo = function() {
+        if(real.fooFlag) { return 'bar'; }
+        else { return 'baz'; }
+      }
+
+      wrapper = RealWrapper(real, fake);
+    });
+
+    it('only sets real usage for the return value given by the real object', function() {
+      expect(mock.behaviours[0].usedByReal).toEqual(false);
+      expect(mock.behaviours[1].usedByReal).toEqual(false);
+
+      wrapper.foo();
+
+      expect(mock.behaviours[0].usedByReal).toEqual(true);
+      expect(mock.behaviours[1].usedByReal).toEqual(false);
+
+      wrapper.fooFlag = false;
+      wrapper.foo();
+
+      expect(mock.behaviours[0].usedByReal).toEqual(true);
+      expect(mock.behaviours[1].usedByReal).toEqual(true);
+    });
+
+    it('returns the value from the real object', function() {
+      expect(wrapper.foo()).toEqual(real.foo());
+
+      wrapper.fooFlag = false;
+      real.fooFlag = false;
+
+      expect(wrapper.foo()).toEqual(real.foo());
     });
   });
 });

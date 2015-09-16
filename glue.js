@@ -138,24 +138,15 @@ function RealWrapper(real, fake) {
     real[methodName] = function() {
       // Check against arguments
       var args = arrayify(arguments);
+      var realReturnValue = realMethod.apply(real, arguments);
+
       for(var b = 0; b < mock.behaviours.length; b++) {
         var behaviour = mock.behaviours[b];
 
-        if (reallyEqual(behaviour.args, args)) {
-
-          // Check return value
-          var realReturnValue = realMethod.apply(real, arguments);
-          if(behaviour.returnValue === realReturnValue) {
-            behaviour.usedByReal = true;
-            return behaviour.returnValue;
-          } else {
-            // Found the behaviour, but it has a different return value
-            throw 'Fake ' + fake.name + ' and real object have different \
-              return values for ' + methodSignature(methodName, args) + ':\n \
-              Fake: ' + methodSignature(methodName, args, behaviour.returnValue) +
-              '\nReal: ' + methodSignature(methodName, args, realReturnValue);
-          }
-
+        if (reallyEqual(behaviour.args, args) &&
+            reallyEqual(behaviour.returnValue, realReturnValue)) {
+          behaviour.usedByReal = true;
+          return behaviour.returnValue;
         }
       }
 
@@ -168,8 +159,8 @@ function RealWrapper(real, fake) {
       mockedCalls = mockedCalls.join('\n');
 
       throw 'Fake ' + fake.name + ' is not set up to receive ' +
-        methodSignature(methodName, args) + ', but it was called on the real \
-        object.\n \
+        methodSignature(methodName, args, returnValue) + ', but it was called \
+        on the real object.\n \
         Mocked calls:\n' + mockedCalls;
     }
   }
