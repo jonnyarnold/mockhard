@@ -5,7 +5,9 @@ module.exports = function(config) {
     reporters: ['dots'],
 
     files: [
-      '*.js'
+      'glue.js',
+      'glue.spec.js',
+      'example.js'
     ],
 
     autoWatch: true

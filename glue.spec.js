@@ -255,6 +255,7 @@ describe('verifyFakes()', function() {
   beforeEach(function() {
     fakes = {};
     subject = fake('example');
+    subject.mock('foo').map([], 'bar');
   });
 
   afterEach(function() {
@@ -265,8 +266,23 @@ describe('verifyFakes()', function() {
     expect(verifyFakes).toThrow();
   });
 
+  it('throws an error if a mock has been called on the fake but not the real', function() {
+    // Call the mock on the fake.
+    subject.foo();
+
+    // Set up a real object to test against
+    var realObject = {
+      foo: function() { return 'baz'; }
+    };
+
+    real('example', realObject);
+    expect(verifyFakes).toThrow();
+  });
+
   it('does not throw an error otherwise', function() {
-    real('example', {});
+    real('example', {
+      foo: function() { return 'bar'; }
+    });
     expect(verifyFakes).not.toThrow();
   });
 });

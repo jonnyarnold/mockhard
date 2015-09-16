@@ -87,6 +87,17 @@ function Mock(methodName) {
     return mock;
   };
 
+  mock.verify = function() {
+    for(var i = 0; i < mock.behaviours.length; i++) {
+      var behaviour = mock.behaviours[i];
+
+      if(behaviour.usedByFake && !behaviour.usedByReal) {
+        throw 'Fake call ' + methodSignature(methodName, behaviour.args, behaviour.returnValue) +
+          ' was not called on the real object.';
+      }
+    }
+  };
+
   return mock;
 }
 
@@ -117,6 +128,10 @@ function Fake(name) {
     if(fake.real === undefined) {
       throw 'No real object defined for fake ' + name + '\n' +
         'Call real(\'' + name + '\', obj) with a real object to test against.';
+    }
+
+    for(var mockName in fake.mocks) {
+      fake.mocks[mockName].verify();
     }
   };
 
@@ -183,7 +198,7 @@ function real(name, object) {
 
 // Run at the end of all tests
 function verifyFakes() {
-  for(name in fakes) {
+  for(var name in fakes) {
     fakes[name].verify();
   }
 }

@@ -41,20 +41,30 @@ describe('if we stopped here', function() {
 });
 
 // Let's do what it says, and test the real object:
-var Library = function(books) {
-  books = books || [];
-
+var Library = function(book) {
   return {
-    checkout: function() { return books.pop(); },
-    return_book: function(book) { books.push(book); }
+    checkout: function() { return book; },
+    return_book: function(newBook) { book = newBook; }
   };
 };
 
+// Naively we could just call
+real('library', Library('Moby Dick'));
+
+// But we haven't actually tested the `checkout()` method,
+// so we will get another error:
+describe('if we stopped here', function() {
+  it('would throw an error', function() {
+    expect(verifyFakes).toThrow();
+  });
+});
+
+// We need to put together a test of `checkout()`:
 describe('Library', function() {
   var library;
 
   beforeEach(function() {
-    library = real('Library', Library(['Moby Dick']));
+    library = real('Library', Library('Moby Dick'));
   });
 
   describe('.checkout', function() {
