@@ -286,3 +286,39 @@ describe('verifyFakes()', function() {
     expect(verifyFakes).not.toThrow();
   });
 });
+
+describe('ordering', function() {
+  // Tests should be able to be run in any order.
+  // This means the tests on the real object may occur before the object is
+  // used in fakes.
+  function fakeUsage() {
+    var fakeObj = fake('example');
+    fakeObj.mock('foo').map([], 'bar');
+    fakeObj.foo();
+  }
+
+  function realUsage() {
+    var realObj = real('example', {
+      foo: function() { return 'bar'; }
+    });
+    realObj.foo();
+  }
+
+  describe('fake() then real()', function() {
+    it('verifies correctly', function() {
+      fakeUsage();
+      realUsage();
+
+      expect(verifyFakes).not.toThrow();
+    });
+  });
+
+  describe('real() then fake()', function() {
+    it('verifies correctly', function() {
+      realUsage();
+      fakeUsage();
+
+      expect(verifyFakes).not.toThrow();
+    });
+  });
+});

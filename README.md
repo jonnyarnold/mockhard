@@ -80,8 +80,6 @@ Congratulations, you have appeased Glue and it will no longer whinge at you.
 
 ## Limitations
 
-- Order is important! `fake` must be fully `mock`ed before `real` is called.
-*(This should be fixed before this library is considered 'good enough to use!')*
 - Glue mocks methods only, not properties.
 
 ## For Developers
