@@ -5,8 +5,8 @@ module.exports = function(config) {
     reporters: ['dots'],
 
     files: [
-      'glue.js',
-      'glue.spec.js',
+      'mockhard.js',
+      'mockhard.spec.js',
       'example.js'
     ],
 

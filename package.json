@@ -1,12 +1,13 @@
 {
-  "name": "glue",
+  "name": "mockhard",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Mocks that make sure you test them.",
+  "repository": "https://github.com/jonnyarnold/mockhard",
+  "main": "mockhard.js",
   "scripts": {
     "test": "karma start --single-run"
   },
-  "author": "",
+  "author": "Jonny Arnold",
   "license": "ISC",
   "devDependencies": {
     "jasmine-core": "^2.3.4",

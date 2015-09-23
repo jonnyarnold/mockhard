@@ -1,6 +1,6 @@
-# Glue: Contract Testing for JavaScript
+# Mockhard: Contract Testing for JavaScript
 
-Glue makes mocking more robust by ensuring mocked methods are tested.
+Mockhard makes mocking more robust by ensuring mocked methods are tested.
 
 ## The Problem
 
@@ -34,15 +34,15 @@ mocks are not synchronised with their real counterparts.*
 
 ## The Solution
 
-Glue ensures that the things you do with your mock object can be done with a
-real object. If you change the real object without changing the mock, Glue will
+Mockhard ensures that the things you do with your mock object can be done with a
+real object. If you change the real object without changing the mock, Mockhard will
 let you know (and vice versa).
 
 If you want more information on why this is cool, watch [Integration Tests are
 a Scam](http://www.infoq.com/presentations/integration-tests-scam). (You could
-say that Glue is a contract testing helper.)
+say that Mockhard is a contract testing helper.)
 
-In Glue you would write:
+In Mockhard you would write:
 
 ```js
 describe('Student', function() {
@@ -55,7 +55,7 @@ describe('Student', function() {
 });
 ```
 
-If you leave it at this, Glue will moan when your tests run because you haven't
+If you leave it at this, Mockhard will moan when your tests run because you haven't
 linked your mock with a real object.
 
 ```
@@ -76,11 +76,11 @@ describe('Library', function() {
 });
 ```
 
-Congratulations, you have appeased Glue and it will no longer whinge at you.
+Congratulations, you have appeased Mockhard and it will no longer whinge at you.
 
 ## Limitations
 
-- Glue mocks methods only, not properties.
+- Mockhard mocks methods only, not properties.
 
 ## For Developers
 

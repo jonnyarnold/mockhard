@@ -22,7 +22,7 @@ describe('Student', function() {
 // a function called `checkout` that takes no arguments and returns Moby Dick.
 // *Our mocks are not synchronised with their real counterparts.*
 
-// In Glue you would write:
+// In Mockhard you would write:
 describe('Student', function() {
   it('does something', function() {
     var library = fake('Library');
@@ -32,7 +32,7 @@ describe('Student', function() {
   });
 });
 
-// If you leave it at this, Glue will moan when your tests run because you
+// If you leave it at this, Mockhard will moan when your tests run because you
 // haven't linked your mock with a real object.
 describe('if we stopped here', function() {
   it('would throw an error', function() {
@@ -74,7 +74,7 @@ describe('Library', function() {
   });
 });
 
-// Congratulations, you have appeased Glue and it will no longer whinge at you.
+// Congratulations, you have appeased Mockhard and it will no longer whinge at you.
 describe('after the real object has been added', function() {
   it('no longer throws an error', function() {
     expect(verifyFakes).not.toThrow();
