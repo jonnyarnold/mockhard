@@ -1,18 +1,18 @@
 describe('fake()', function() {
 
   beforeEach(function() {
-    fakes = {};
+    Mockhard.fakes = {};
   });
 
   // If we don't kill the fakes _after_ the tests,
   // we may accidentally verify our fake fakes.
   afterEach(function() {
-    fakes = {};
+    Mockhard.reset();
   });
 
   it('records a fake in fakes', function() {
     fake('example');
-    expect(fakes.example).toBeDefined();
+    expect(Mockhard.fakes.example).toBeDefined();
   });
 
   it('returns the same fake on two separate calls', function() {
@@ -23,11 +23,15 @@ describe('fake()', function() {
 
 });
 
-describe('Fake', function() {
+describe('fake() objects', function() {
   var subject;
 
   beforeEach(function() {
-    subject = Fake();
+    subject = fake('example');
+  });
+
+  afterEach(function() {
+    Mockhard.reset();
   });
 
   describe('.mock', function() {
@@ -54,11 +58,15 @@ describe('Fake', function() {
   });
 });
 
-describe('Mock', function() {
+describe('fake().mock() objects', function() {
   var subject;
 
   beforeEach(function() {
-    subject = Mock('example');
+    subject = fake('example').mock('example');
+  });
+
+  afterEach(function() {
+    Mockhard.reset();
   });
 
   it('is a function', function() {
@@ -114,71 +122,74 @@ describe('real()', function() {
   var subject;
 
   beforeEach(function() {
-    fakes = {};
     subject = fake('example');
   });
 
   afterEach(function() {
-    fakes = {};
+    Mockhard.reset();
   });
 
   it('assigns the real object to the fake', function() {
     var realObj = {};
     real('example', realObj);
 
-    expect(fakes.example.real).toBe(realObj);
+    expect(Mockhard.fakes.example.real).toBe(realObj);
   });
 });
 
-describe('RealWrapper', function() {
-  var fake;
+describe('real() objects', function() {
+  var fakeObj;
   var mock;
-  var real;
+  var realObj;
   var wrapper;
 
   beforeEach(function() {
-    fake = Fake('example');
-    mock = fake.mock('foo').map([], 'bar');
+    fakeObj = fake('example');
+    mock = fakeObj.mock('foo').map([], 'bar');
 
-    real = {
+    realObj = {
       foo: function() { return 'bar'; },
       somethingElse: function() { return 'hi'; }
     };
   });
 
-  describe('on RealWrapper construction', function() {
-    it('throws when fake has method that real does not', function() {
-      var oldFake = fake;
+  afterEach(function() {
+    Mockhard.reset();
+  });
 
-      fake.mock('baz').map([], 'Uh oh.');
+  describe('on construction', function() {
+    it('throws when fake has method that real does not', function() {
+      var oldFake = fakeObj;
+
+      fakeObj.mock('baz').map([], 'Uh oh.');
 
       expect(function() {
-        RealWrapper(real, fake);
+        real('example', realObj);
       }).toThrow();
 
-      fake = oldFake;
+      fakeObj = oldFake;
     });
 
     it('returns if fake has subset of real methods', function() {
       expect(function() {
-        RealWrapper(real, fake);
+        real('example', realObj);
       }).not.toThrow();
     });
   });
 
-  describe('once RealWrapper has been constructed', function() {
+  describe('after construction', function() {
     beforeEach(function() {
-      wrapper = RealWrapper(real, fake);
+      wrapper = real('example', realObj);
     });
 
     describe('when calling a mock function', function() {
       it('records real function calls in fake', function() {
-        expect(fake.foo.behaviours.length).toEqual(1);
-        expect(fake.foo.behaviours[0].usedByReal).toEqual(false);
+        expect(fakeObj.foo.behaviours.length).toEqual(1);
+        expect(fakeObj.foo.behaviours[0].usedByReal).toEqual(false);
 
         wrapper.foo();
 
-        expect(fake.foo.behaviours[0].usedByReal).toEqual(true);
+        expect(fakeObj.foo.behaviours[0].usedByReal).toEqual(true);
       });
 
       it('throws if the arguments do not match a mock behaviour', function() {
@@ -188,7 +199,7 @@ describe('RealWrapper', function() {
       });
 
       it('returns the real return value', function() {
-        expect(wrapper.foo()).toEqual(real.foo());
+        expect(wrapper.foo()).toEqual(realObj.foo());
       });
     });
 
@@ -211,15 +222,15 @@ describe('RealWrapper', function() {
       // Now foo() could return bar or baz.
       // This is legitimate, as a function may return different values in
       // different contexts.
-      real = {
+      realObj = {
         fooFlag: true
       };
-      real.foo = function() {
-        if(real.fooFlag) { return 'bar'; }
+      realObj.foo = function() {
+        if(realObj.fooFlag) { return 'bar'; }
         else { return 'baz'; }
       }
 
-      wrapper = RealWrapper(real, fake);
+      wrapper = real('example', realObj);
     });
 
     it('only sets real usage for the return value given by the real object', function() {
@@ -239,12 +250,12 @@ describe('RealWrapper', function() {
     });
 
     it('returns the value from the real object', function() {
-      expect(wrapper.foo()).toEqual(real.foo());
+      expect(wrapper.foo()).toEqual(realObj.foo());
 
       wrapper.fooFlag = false;
       real.fooFlag = false;
 
-      expect(wrapper.foo()).toEqual(real.foo());
+      expect(wrapper.foo()).toEqual(realObj.foo());
     });
   });
 });
@@ -253,13 +264,12 @@ describe('verifyFakes()', function() {
   var subject;
 
   beforeEach(function() {
-    fakes = {};
     subject = fake('example');
     subject.mock('foo').map([], 'bar');
   });
 
   afterEach(function() {
-    fakes = {};
+    Mockhard.reset();
   });
 
   it('throws an error when no real object has been set', function() {
@@ -303,6 +313,10 @@ describe('ordering', function() {
     });
     realObj.foo();
   }
+
+  afterEach(function() {
+    Mockhard.reset();
+  });
 
   describe('fake() then real()', function() {
     it('verifies correctly', function() {
