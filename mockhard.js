@@ -38,7 +38,7 @@ var Mockhard = (function() {
   }
 
   // Converts a method signature into a string.
-  var methodSignature = function(methodName, args, returnValue) {
+  function methodSignature(methodName, args, returnValue) {
     var signature = methodName + '(' + args.toString() + ')';
     if(returnValue) {
       signature += ' => ' + returnValue.toString();
@@ -46,6 +46,8 @@ var Mockhard = (function() {
 
     return signature;
   };
+
+
 
   // An overridden function definition
   function Mock(methodName) {
@@ -111,6 +113,9 @@ var Mockhard = (function() {
       // Set with real().
       real: undefined,
 
+      // Collects calls to the real object.
+      realCalls: [],
+
       // We keep a list of mocks so we can iterate over them;
       // they are also set on the object directly (so we can use them!)
       mocks: {}
@@ -132,7 +137,36 @@ var Mockhard = (function() {
           'Call real(\'' + name + '\', obj) with a real object to test against.';
       }
 
+      // Set the usedByReal flag
+      for(var i = 0; i < fake.realCalls.length; i++) {
+        var realCall = fake.realCalls[i];
+        var mock = fake.mocks[realCall.methodName];
+        if(mock === undefined) { continue; }
+
+        for(var j = 0; j < mock.behaviours.length; j++) {
+          var behaviour = mock.behaviours[j];
+
+          if(reallyEqual(realCall.args, behaviour.args) &&
+            reallyEqual(realCall.returnValue, behaviour.returnValue)) {
+            behaviour.usedByReal = true;
+          }
+        }
+      }
+
       for(var mockName in fake.mocks) {
+        // We check to see if the real objects' methods are a subset
+        // of the fake's. Unfortunately this is complicated by our
+        // RealWrapper replacing these methods, so we sniff for our
+        // wrapper as well.
+        if(
+          fake.real[mockName] === undefined ||
+          (fake.real[mockName].hasOwnProperty('realMethod') &&
+            fake.real[mockName].realMethod === undefined)
+        ) {
+          throw 'Fake ' + fake.name + ' defines ' + methodName +
+            ', but the real object does not.';
+        }
+
         fake.mocks[mockName].verify();
       }
     };
@@ -140,46 +174,31 @@ var Mockhard = (function() {
     return fake;
   };
 
+  // Generates a function that wraps the real function
+  // and logs the call to the fake.
+  function realMethodWrapperFor(real, methodName, fake) {
+    var realMethod = real[methodName];
+
+    return function() {
+      // Check against arguments
+      var args = arrayify(arguments);
+      var returnValue = realMethod.apply(real, arguments);
+
+      fake.realCalls.push({
+        methodName: methodName,
+        args: args,
+        returnValue: returnValue
+      });
+
+      return returnValue;
+    };
+  };
+
   // Wraps a real object, recording any usage
   // of a method in the fake's behaviours.
   function RealWrapper(real, fake) {
-    for(methodName in fake.mocks) {
-      var mock = fake.mocks[methodName];
-      var realMethod = real[methodName];
-
-      if(realMethod === undefined) {
-        throw 'Fake ' + fake.name + ' defines ' + methodName + ', but the real \
-          object does not.';
-      }
-
-      real[methodName] = function() {
-        // Check against arguments
-        var args = arrayify(arguments);
-        var realReturnValue = realMethod.apply(real, arguments);
-
-        for(var b = 0; b < mock.behaviours.length; b++) {
-          var behaviour = mock.behaviours[b];
-
-          if (reallyEqual(behaviour.args, args) &&
-              reallyEqual(behaviour.returnValue, realReturnValue)) {
-            behaviour.usedByReal = true;
-            return behaviour.returnValue;
-          }
-        }
-
-        // If we get here, there are no matching behaviours for these args.
-        var mockedCalls = [];
-        for(var name in mock.behaviours) {
-          var b = mock.behaviours[name];
-          mockedCalls.push(methodSignature(methodName, b.args, b.returnValue));
-        }
-        mockedCalls = mockedCalls.join('\n');
-
-        throw 'Fake ' + fake.name + ' is not set up to receive ' +
-          methodSignature(methodName, args, returnValue) + ', but it was called \
-          on the real object.\n \
-          Mocked calls:\n' + mockedCalls;
-      }
+    for(methodName in real) {
+      real[methodName] = realMethodWrapperFor(real, methodName, fake);
     }
 
     return real;

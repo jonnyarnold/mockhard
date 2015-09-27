@@ -80,7 +80,10 @@ Congratulations, you have appeased Mockhard and it will no longer whinge at you.
 
 ## Limitations
 
+- Mockhard doesn't link into any test frameworks for auto-verifying.
 - Mockhard mocks methods only, not properties.
+- Mockhard is not async-safe at the moment. Well, I'm not confident it is
+  anyway.
 
 ## For Developers
 

@@ -158,18 +158,6 @@ describe('real() objects', function() {
   });
 
   describe('on construction', function() {
-    it('throws when fake has method that real does not', function() {
-      var oldFake = fakeObj;
-
-      fakeObj.mock('baz').map([], 'Uh oh.');
-
-      expect(function() {
-        real('example', realObj);
-      }).toThrow();
-
-      fakeObj = oldFake;
-    });
-
     it('returns if fake has subset of real methods', function() {
       expect(function() {
         real('example', realObj);
@@ -184,18 +172,11 @@ describe('real() objects', function() {
 
     describe('when calling a mock function', function() {
       it('records real function calls in fake', function() {
-        expect(fakeObj.foo.behaviours.length).toEqual(1);
-        expect(fakeObj.foo.behaviours[0].usedByReal).toEqual(false);
+        expect(fakeObj.realCalls.length).toEqual(0);
 
         wrapper.foo();
 
-        expect(fakeObj.foo.behaviours[0].usedByReal).toEqual(true);
-      });
-
-      it('throws if the arguments do not match a mock behaviour', function() {
-        expect(function() {
-          wrapper.foo('I do not want arguments');
-        }).toThrow();
+        expect(fakeObj.realCalls.length).toEqual(1);
       });
 
       it('returns the real return value', function() {
@@ -233,22 +214,6 @@ describe('real() objects', function() {
       wrapper = real('example', realObj);
     });
 
-    it('only sets real usage for the return value given by the real object', function() {
-      expect(mock.behaviours[0].usedByReal).toEqual(false);
-      expect(mock.behaviours[1].usedByReal).toEqual(false);
-
-      wrapper.foo();
-
-      expect(mock.behaviours[0].usedByReal).toEqual(true);
-      expect(mock.behaviours[1].usedByReal).toEqual(false);
-
-      wrapper.fooFlag = false;
-      wrapper.foo();
-
-      expect(mock.behaviours[0].usedByReal).toEqual(true);
-      expect(mock.behaviours[1].usedByReal).toEqual(true);
-    });
-
     it('returns the value from the real object', function() {
       expect(wrapper.foo()).toEqual(realObj.foo());
 
@@ -273,6 +238,11 @@ describe('verifyFakes()', function() {
   });
 
   it('throws an error when no real object has been set', function() {
+    expect(verifyFakes).toThrow();
+  });
+
+  it('throws an error when a fake has a method that the real does not', function() {
+    real('example', {});
     expect(verifyFakes).toThrow();
   });
 
