@@ -47,7 +47,7 @@ In Mockhard you would write:
 ```js
 describe('Student', function() {
   it('does something', function() {
-    var library = fake('library');
+    var library = fake('Library');
     library.mock('checkout').map([], 'Moby Dick');
 
     expect(Student.learn(library)).toEqual('I learned Moby Dick');
@@ -58,20 +58,20 @@ describe('Student', function() {
 If you leave it at this, Mockhard will moan when your tests run because you haven't
 linked your mock with a real object.
 
-```
-No real object defined for fake library
-Call real(library, obj) with a real object to test against.
-```
-
-Let's do what it says, and test the real object:
+Let's do what it says and test the real object:
 
 ```js
 describe('Library', function() {
-  it('returns the name of the book in the constructor', function() {
-    var library = Library('Moby Dick');
-    real('library', library);
+  var library;
 
-    expect(library.checkout()).toEqual('Moby Dick');
+  beforeEach(function() {
+    library = real('Library', Library('Moby Dick'));
+  });
+
+  describe('.checkout', function() {
+    it('returns the first book', function() {
+      expect(library.checkout()).toEqual('Moby Dick');
+    });
   });
 });
 ```
